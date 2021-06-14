@@ -3,10 +3,16 @@
 ![demo](/media/DashDuino_demo.gif?raw=true)
 A simple app to read knob values from an Arduino board to a Dash app.
 
-## Board Schemtics
 
+### How to use
+
+Load the DashDuino_Sketch on an Arduino Uno R3 board and wire up it based on the shcematic drawings. 
 ![demo](/media/board_small.png)
-### Quick demo!
+
+Once the board is up and running, make sure that Arduino serial montor is CLOSED, we want to have that port closed and ready for the dashboard to open it.
+Check the port that your Arduino is connected to and update the **port** variable in DashDuino_dbc_app.py to match it. Then run the dash app:
+`path\to\your\code\python  DashDuino_dbc_app.py`
+
 ![demo](/media/simulation.gif?raw=true)
 
 ## Dependencies
@@ -23,4 +29,9 @@ The code is tested to work with these versions:
 * re: 2.2.1
 * serial: 3.5
 * json: 2.0.9
+---
+## To do
+ - [ ] Add port selection
 
+---
+Code developed by [Ardavan Bidgoli](ardavan.io)
