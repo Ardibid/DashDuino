@@ -1,8 +1,17 @@
 # DashDuino
+
 ![demo](/media/DashDuino_demo.gif?raw=true)
 A simple app to read knob values from an Arduino board to a Dash app.
 
+## Board Schemtics
+
+![demo](/media/board_small.png)
+### Quick demo!
+![demo](/media/simulation.gif?raw=true)
+
 ## Dependencies
+
+The code is tested to work with these versions:
 
 * plotly: 4.14.3
 * dash: 1.19.0
