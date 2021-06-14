@@ -238,5 +238,23 @@ def update_serila(interavl):
 ######################################################################
 ### Dash App Running!
 ######################################################################
+mode_options = {'debug':'d', 'local':'l', 'remote':'r'}
+mode_selection = 'debug'
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    mode = mode_options[mode_selection]
+    if mode =='d':
+        # for test and debug
+        app.run_server(debug=True)
+    elif mode=='l':
+        # to run on lovel device
+        app.run_server(debug=False)
+
+    elif mode=='r':
+        """
+        To run and access it over network
+        Access it over network on Chrome at:
+              server_ip:8080
+              i.e.: 192.168.86.34:8080
+        """
+        app.run_server(debug=False, port=8080, host='0.0.0.0')
+
