@@ -12,6 +12,8 @@
 ### Imports
 ######################################################################
 import dash
+from dash_html_components.Col import Col
+from dash_html_components.H4 import H4
 import dash_daq as daq
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -32,8 +34,13 @@ counter = 0
 timeout_val = 100
 baudrate_val=115200
 port = 'COM4'
+rotary_encoder_range = [-2000, 2000]
 
 
+"""
+Sample of data collected from the Arduino sketch
+{"knob_00":283,"knob_01":258,"knob_02":264,"knob_03":310,"knob_04":355,"knob_05":315,"rotary_knob":2310}
+"""
 ######################################################################
 ######################################################################
 ### Dash App Begins Here
@@ -119,6 +126,23 @@ gauges = html.Div([
                             ])
 ])
 
+rotary_encoder = html.Div([
+                        dbc.Row([
+                                html.H4("Rotary Input"),
+                                ]),
+                        dbc.Row([
+                                html.Hr(),
+                                ]),        
+                        dbc.Row([
+                                dbc.Col([
+                                        dcc.Slider(
+                                                id='rotary',
+                                                min= min(rotary_encoder_range), 
+                                                max = max(rotary_encoder_range),
+                                                )   
+                                         ])
+                        ], align="center",)
+                    ])
 controls = dbc.Row([
                     dbc.Card([
                          dbc.CardBody([
@@ -145,6 +169,8 @@ controls = dbc.Row([
 app.layout = dbc.Container([setup_row,
                             html.Hr(),
                             gauges,
+                            html.Hr(),
+                            rotary_encoder,
                             html.Hr(),
                             controls
                             ])
@@ -190,6 +216,8 @@ def port_manager(val):
     Output(component_id='knob_03', component_property='value'),
     Output(component_id='knob_04', component_property='value'),
     Output(component_id='knob_05', component_property='value'),
+    Output(component_id='rotary', component_property='value'),
+
     Input(component_id="interval_component", component_property="n_intervals"),
     )
 def update_serila(interavl):
@@ -214,12 +242,19 @@ def update_serila(interavl):
             try:
                 data_to_read = serial_port.inWaiting()
                 serial_msg = serial_port.read(data_to_read).decode('ascii')
-                msg = serial_msg.split("\r\n")[-2]
+                data = serial_msg.split("\r\n")
+                msg = data[-2]
                 knob_values = json.loads(msg)
 
                 msg = ""
+
                 for key, value in knob_values.items():
                     msg = msg+ "{}: {}, ".format(key[-2:], value)
+
+                # just to clip the rotary value!
+                knob_values["rotary_knob"] = max (min(rotary_encoder_range), 
+                                                  min(knob_values["rotary_knob"], 
+                                                      max(rotary_encoder_range)))
 
                 return ([msg, 
                         knob_values["knob_00"],
@@ -227,13 +262,14 @@ def update_serila(interavl):
                         knob_values["knob_02"],
                         knob_values["knob_03"],
                         knob_values["knob_04"],
-                        knob_values["knob_05"],])
+                        knob_values["knob_05"],
+                        knob_values["rotary_knob"],])
             except:
                 counter += 1
                 print ("had issues!",counter)
-                return (7*[dash.no_update])
+                return (8*[dash.no_update])
     # if port doesn't exist or is closed
-    return (["Still Nothing", 0, 0, 0, 0, 0, 0])
+    return (["Still Nothing", 0, 0, 0, 0, 0, 0, 0])
 
 ######################################################################
 ### Dash App Running!
