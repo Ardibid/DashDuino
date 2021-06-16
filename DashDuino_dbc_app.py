@@ -2,7 +2,7 @@
     File name: DashDuino_dbc_app.py
     Author: Ardavan Bidgoli
     Date created: 06/13/2021
-    Date last modified: 06/13/2021
+    Date last modified: 06/16/2021
     Python Version: 3.7.7
 
     License: MIT
@@ -24,6 +24,36 @@ from dash_html_components.Hr import Hr
 
 import serial
 import json
+import argparse
+
+######################################################################
+### Arguments
+######################################################################
+parser = argparse.ArgumentParser(prog='DashDuino',
+                                description="A Dash app to communicate with Arduino board")
+parser.add_argument('mode', 
+                        help="Run the App in \"debug\", \"local\", or \"remote\" mode", 
+                        default= "debug",
+                        nargs='?',
+                        type=str)
+
+parser.add_argument('comPort', 
+                        help="Select the COM port to use, defulat is COM4", 
+                        default='COM4',
+                        nargs='?',
+                        type=str)
+
+parser.add_argument('baudRate', 
+                        help="Defeins the baudrate for the port, defulat is 115200", 
+                        default=115200,
+                        nargs='?',
+                        type=int)
+
+args = parser.parse_args()
+
+port = args.comPort
+mode_selection = args.mode
+baudrate_val = args.baudRate
 
 ######################################################################
 ### Variables
@@ -32,10 +62,7 @@ serial_port = None
 knob_values = {}
 counter = 0
 timeout_val = 100
-baudrate_val=115200
-port = 'COM4'
 rotary_encoder_range = [-2000, 2000]
-
 
 """
 Sample of data collected from the Arduino sketch
@@ -421,7 +448,7 @@ def update_serila(interavl):
 ### Dash App Running!
 ######################################################################
 mode_options = {'debug':'d', 'local':'l', 'remote':'r'}
-mode_selection = 'debug'
+#mode_selection = 'debug'
 
 if __name__ == '__main__':
         mode = mode_options[mode_selection]
