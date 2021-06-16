@@ -32,19 +32,19 @@ import argparse
 parser = argparse.ArgumentParser(prog='DashDuino',
                                 description="A Dash app to communicate with Arduino board")
 parser.add_argument('mode', 
-                        help="Run the App in \"debug\", \"local\", or \"remote\" mode", 
+                        help="Run the App in \"debug\", \"local\", or \"remote\" mode (str)", 
                         default= "debug",
                         nargs='?',
                         type=str)
 
 parser.add_argument('comPort', 
-                        help="Select the COM port to use, defulat is COM4", 
+                        help="Select the COM port to use, defulat is \"COM4\" (str)", 
                         default='COM4',
                         nargs='?',
                         type=str)
 
 parser.add_argument('baudRate', 
-                        help="Defeins the baudrate for the port, defulat is 115200", 
+                        help="Defeins the baudrate for the port, defulat is 115200 (int)", 
                         default=115200,
                         nargs='?',
                         type=int)
