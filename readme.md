@@ -1,11 +1,9 @@
 # DashDuino
 
-![demo](/media/DashDuino_demo.gif?raw=true)
+![demo](/media/demo_v01.gif?raw=true)
+
 A simple app to read knob values from an Arduino board to a Dash app.
 
-### Interface
-The latest version looks like this:
-![demo](/media/interface_v01.png)
 
 ### How to use
 
@@ -32,9 +30,20 @@ The code is tested to work with these versions:
 * re: 2.2.1
 * serial: 3.5
 * json: 2.0.9
+
 ---
+
 ## To do
- - [ ] Add port selection
+
+* [x] Add port selection
+
+* [x] Adding rotary encoder support
+
+---
+
+## Old Demo
+
+![demo](/media/DashDuino_demo.gif?raw=true)
 
 ---
 Code developed by [Ardavan Bidgoli](ardavan.io)
