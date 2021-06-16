@@ -219,21 +219,21 @@ control_panel = dbc.Card([
                                 dbc.Row([
                                         dbc.Col([html.H6("Control Display", 
                                                 className="card-subtitle")
-                                                ], width=1),
+                                                ], width=2),
                                         dbc.Col([daq.BooleanSwitch(
                                                                 id='text_switch',
                                                                 on=True,
                                                                 label="Show Knob Lable",
                                                                 labelPosition="top"
                                                                 ),
-                                                ], width=1),
+                                                ], width=2),
                                         dbc.Col([daq.BooleanSwitch(
                                                                 id='setup_switch',
                                                                 on=False,
                                                                 label="Show Advanced",
                                                                 labelPosition="top"
                                                                 ),
-                                                ], width=1),   
+                                                ], width=2),   
                                         ], className="mb-2"),                                     
                                 dbc.Row([
                                         controls
