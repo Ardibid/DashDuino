@@ -25,12 +25,12 @@ from dash_html_components.Hr import Hr
 import serial
 import json
 import argparse
-
+import time
 ######################################################################
 ### Arguments
 ######################################################################
 parser = argparse.ArgumentParser(prog='DashDuino',
-                                description="A Dash app to communicate with Arduino board")
+                                description="A Dash app to communicate with Arduino board, if running on RaspberryPi, make sure to defined the COM port correctly")
 parser.add_argument('mode', 
                         help="Run the App in \"debug\", \"local\", or \"remote\" mode (str)", 
                         default= "debug",
@@ -38,8 +38,8 @@ parser.add_argument('mode',
                         type=str)
 
 parser.add_argument('comPort', 
-                        help="Select the COM port to use, defulat is \"COM4\" (str)", 
-                        default='COM4',
+                        help="Select the COM port to use, defulat is \"/dev/ttyACM0\" (str)", 
+                        default='/dev/ttyACM1',
                         nargs='?',
                         type=str)
 
@@ -230,7 +230,7 @@ controls = dbc.Card([
                                 dbc.Row([      
                                         dcc.Interval(
                                                 id='interval_component',
-                                                interval= 50, # in milliseconds
+                                                interval= 100, # in milliseconds
                                                 n_intervals=0
                                                 ),
                                                 
@@ -372,7 +372,8 @@ def port_manager(val):
                         serial_port.close()
                         return (["Port is closed","Open Port"])
                 else:
-                        serial_port = serial.Serial(port,baudrate=baudrate_val, timeout=timeout_val)
+                        
+                        serial_port = serial.Serial(port,baudrate=baudrate_val, timeout=0)
                         return (["Port is open","Close Port"])
         # opening the port on page load
         else:
@@ -411,33 +412,37 @@ def update_serila(interavl):
         if serial_port:
                 # checks if the serial port is open
                 if serial_port.isOpen():
+                        time.sleep(.01)
                         try:
                                 data_to_read = serial_port.inWaiting()
                                 serial_msg = serial_port.read(data_to_read).decode('ascii')
                                 data = serial_msg.split("\r\n")
                                 msg = data[-2]
-                                knob_values = json.loads(msg)
+                                if msg[0]=="{" and msg[-1]=="}":
+                                    knob_values = json.loads(msg)
+                                    #print (knob_values)
+                                    msg = ""
 
-                                msg = ""
+                                    for key, value in knob_values.items():
+                                            msg = msg+ "{}: {}, ".format(key[-2:], value)
 
-                                for key, value in knob_values.items():
-                                        msg = msg+ "{}: {}, ".format(key[-2:], value)
+                                    # just to clip the rotary value!
+                                    knob_values["rotary_knob"] = max (min(rotary_encoder_range), 
+                                                                    min(knob_values["rotary_knob"], 
+                                                                    max(rotary_encoder_range)))
 
-                                # just to clip the rotary value!
-                                knob_values["rotary_knob"] = max (min(rotary_encoder_range), 
-                                                                min(knob_values["rotary_knob"], 
-                                                                max(rotary_encoder_range)))
-
-                                return ([msg, 
-                                        knob_values["knob_00"],
-                                        knob_values["knob_01"],
-                                        knob_values["knob_02"],
-                                        knob_values["knob_03"],
-                                        knob_values["knob_04"],
-                                        knob_values["knob_05"],
-                                        knob_values["rotary_knob"],
-                                        knob_values["rotary_knob"],])
-                        except:
+                                    return ([msg, 
+                                            knob_values["knob_00"],
+                                            knob_values["knob_01"],
+                                            knob_values["knob_02"],
+                                            knob_values["knob_03"],
+                                            knob_values["knob_04"],
+                                            knob_values["knob_05"],
+                                            knob_values["rotary_knob"],
+                                            knob_values["rotary_knob"],])
+                        
+                        
+                        except:    
                                 counter += 1
                                 print ("had issues!",counter)
                                 return (9*[dash.no_update])
@@ -456,7 +461,7 @@ if __name__ == '__main__':
                 # for test and debug
                 app.run_server(debug=True)
         elif mode=='l':
-                # to run on lovel device
+                # to run on local device
                 app.run_server(debug=False)
 
         elif mode=='r':
