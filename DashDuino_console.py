@@ -14,6 +14,7 @@
 import dash
 from dash_html_components.Col import Col
 from dash_html_components.H4 import H4
+from numpy.lib.function_base import average
 import dash_daq as daq
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -25,6 +26,7 @@ from dash_html_components.Hr import Hr
 import serial
 import json
 import argparse
+import numpy as np
 
 ######################################################################
 ### Arguments
@@ -62,7 +64,9 @@ serial_port = None
 knob_values = {}
 counter = 0
 timeout_val = 100
-rotary_encoder_range = [-2000, 2000]
+smoothing_factor = 5
+knob_max_val = 970
+rotary_encoder_range = [0//smoothing_factor, knob_max_val//smoothing_factor]
 
 """
 Sample of data collected from the Arduino sketch
@@ -99,84 +103,54 @@ title_row = dbc.Card([
 # the main card to contain all the readings from knobs
 gauges = dbc.Card([
                         dbc.CardBody([
-                        html.H4("Knobs", id="Knobs_title"),
-                        html.P("Use the mixer knobs to set values", id="Knobs_p"),
-                        html.Hr(),
-                        dbc.Row([
-                                dbc.Col( 
-                                        daq.Gauge(
-                                                id='knob_00',
-                                                label="Knob 00",
-                                                min= 0, 
-                                                max = 1023,
-                                                showCurrentValue=show_values_on_knobs,
-                                                ),
-                                        ),
-                                dbc.Col( 
-                                        daq.Gauge(
-                                                id='knob_01',
-                                                label="Knob 01",
-                                                min= 0, 
-                                                max = 1023,
-                                                showCurrentValue=show_values_on_knobs,
-                                                ),
-                                        ),
-                                dbc.Col( 
-                                        daq.Gauge(
-                                                id='knob_02',
-                                                label="Knob 02",
-                                                min= 0, 
-                                                max = 1023,
-                                                showCurrentValue=show_values_on_knobs,
-                                                ),
-                                        ),
-                                dbc.Col( 
-                                        daq.Gauge(
-                                                id='knob_03',
-                                                label="Knob 03",
-                                                min= 0, 
-                                                max = 1023,
-                                                showCurrentValue=show_values_on_knobs,
-                                                ),
-                                        ),
-                                dbc.Col( 
-                                        daq.Gauge(
-                                                id='knob_04',
-                                                label="Knob 04",
-                                                min= 0, 
-                                                max = 1023,
-                                                showCurrentValue=show_values_on_knobs,
-                                                ),
-                                        ),
-                                dbc.Col( 
-                                        daq.Gauge(
-                                                id='knob_05',
-                                                label="Knob 05",
-                                                min= 0, 
-                                                max = 1023,
-                                                showCurrentValue=show_values_on_knobs,
-                                                ),
-                                        ),
-                                ]),
-                        dbc.Row([
-                                dbc.Col([
-                                        html.H3("No read yet", 
-                                                id="rotary_status",
-                                                style={'textAlign': 'center'}
+                                html.H4("Knobs", id="Knobs_title"),
+                                html.P("Use the mixer knobs to set values", id="Knobs_p"),
+                                html.Hr(),
+                                dbc.Row([
+                                        dbc.Col(daq.Gauge(
+                                                        id='knob_00',
+                                                        #label="Knob 00",
+                                                        min= 0, 
+                                                        max = knob_max_val//smoothing_factor,
+                                                        showCurrentValue=show_values_on_knobs,
+                                                        ),width = 3),
+                                        dbc.Col([
+                                                daq.Gauge(
+                                                        id='knob_01',
+                                                        #label="Knob 01",
+                                                        min= 0, 
+                                                        max = knob_max_val//smoothing_factor,
+                                                        showCurrentValue=show_values_on_knobs,
+                                                        ),
+
+                                                daq.Gauge(
+                                                        id='knob_02',
+                                                        #label="Knob 02",
+                                                        min= 0, 
+                                                        max = knob_max_val//smoothing_factor,
+                                                        showCurrentValue=show_values_on_knobs,
+                                                        ),]
                                                 ),
                                                 
-                                        ], width=2),
-                                dbc.Col([
-                                        dcc.Slider(
-                                                id='rotary',
-                                                min= min(rotary_encoder_range), 
-                                                max = max(rotary_encoder_range),
-                                                )   
-                                        ]),
-                                ], align="center", className="mt-5"), 
-
-                        ])
-                ], color="dark" , inverse=True, className="mb-2")
+                                        dbc.Col([
+                                                html.H3("No read yet", 
+                                                        id="rotary_status",
+                                                        style={'textAlign': 'center'}
+                                                        ),
+                                                
+                                                        
+                                                ], width=2),
+                                        dbc.Col([
+                                                dcc.Slider(
+                                                        id='rotary',
+                                                        min= min(rotary_encoder_range), 
+                                                        max = max(rotary_encoder_range),
+                                                        )   
+                                                ]),
+                                        
+                                        ],justify="center", align="center"),
+                                ])
+                ], color="dark" , inverse=True, className="mb-2",)
 
 # Dedicated card for the rotary knob, 
 # Not used in final code, kept here for a reference 
@@ -231,7 +205,7 @@ controls = dbc.Card([
                                 dbc.Row([      
                                         dcc.Interval(
                                                 id='interval_component',
-                                                interval= 150, # in milliseconds
+                                                interval= 33, # in milliseconds
                                                 n_intervals=0
                                                 ),
                                                 
@@ -309,10 +283,9 @@ def update_output(on):
         Output("port_status", "children"),
         [Input("COM3", "n_clicks"),
         Input("COM4", "n_clicks"),
-        Input("COM5", "n_clicks"),
-        Input("COM6", "n_clicks")]
+        Input("COM5", "n_clicks")]
         )
-def set_com_port(c3, c4, c5,):
+def set_com_port(c3, c4, c5):
         """
         Reads the name of COM port from the drop down menu
         updates the port varaibale accordingly.
@@ -332,22 +305,6 @@ def set_com_port(c3, c4, c5,):
                 print (port)
                 return "Active port: {}".format(port)
                 
-# just a sample of how fade works
-# @app.callback(
-#         Output("advanced_options", "is_in"),
-#         [Input("show_options", "n_clicks")],
-#         [State("advanced_options", "is_in")],
-#         )
-# def toggle_fade(n, is_in):
-#         """
-#         Fades and unfades the card
-#         Args:
-#                 n_clicks (int): number of clicks on the switch
-#         """
-#         if not n:
-#                 # Button has never been clicked
-#                 return False
-#         return not is_in
 
 @app.callback(
         Output(component_id='port_stat', component_property='children'),
@@ -381,15 +338,12 @@ def port_manager(val):
                 serial_port = serial.Serial(port, baudrate=baudrate_val, timeout=timeout_val)
                 return (["Port is open","Close Port"])
 
-
+previous_readings = [[] for i in range(4)]
 @app.callback(
         Output(component_id='serial_val', component_property='children'),
         Output(component_id='knob_00', component_property='value'),
         Output(component_id='knob_01', component_property='value'),
         Output(component_id='knob_02', component_property='value'),
-        Output(component_id='knob_03', component_property='value'),
-        Output(component_id='knob_04', component_property='value'),
-        Output(component_id='knob_05', component_property='value'),
         Output(component_id='rotary', component_property='value'),
         Output(component_id='rotary_status', component_property='children'),
         Input(component_id="interval_component", component_property="n_intervals"),
@@ -408,12 +362,13 @@ def update_serila(interavl):
         global serial_port
         global knob_values
         global counter
-
+        global previous_readings
         # checks if the serial port exists
         if serial_port:
                 # checks if the serial port is open
                 if serial_port.isOpen():
-                        try:
+                        try:    
+                                knob_values = [0 for i in range (4)]
                                 data_to_read = serial_port.inWaiting()
                                 serial_msg = serial_port.read(data_to_read).decode('ascii')
                                 data = serial_msg.split("\r\n")
@@ -426,25 +381,29 @@ def update_serila(interavl):
                                         msg = msg+ "{}: {}, ".format(key[-2:], value)
 
                                 # just to clip the rotary value!
-                                knob_values["rotary_knob"] = max (min(rotary_encoder_range), 
-                                                                min(knob_values["rotary_knob"], 
-                                                                max(rotary_encoder_range)))
+                                # knob_values["rotary_knob"] = max (min(rotary_encoder_range), 
+                                #                                 min(knob_values["rotary_knob"], 
+                                #                                 max(rotary_encoder_range)))
                                 # knob_values["rotary_knob"] = 0
+                                for i in range(4):        
+                                        if len (previous_readings[i]) > 5:
+                                                previous_readings[i] = previous_readings[i][1:]
+                                        previous_readings[i].append(knob_values["knob_0{}".format(i)])
+
+                                        knob_values[i] = average(previous_readings[i])
+                                
                                 return ([msg, 
-                                        knob_values["knob_00"],
-                                        knob_values["knob_01"],
-                                        knob_values["knob_02"],
-                                        knob_values["knob_03"],
-                                        knob_values["knob_04"],
-                                        knob_values["knob_05"],
-                                        knob_values["rotary_knob"],
-                                        knob_values["rotary_knob"],])
+                                        knob_values[0]//smoothing_factor,
+                                        knob_values[1]//smoothing_factor,
+                                        knob_values[2]//smoothing_factor,
+                                        knob_values[3]//smoothing_factor,
+                                        knob_values[3]//smoothing_factor,])
                         except:
                                 counter += 1
                                 print ("had issues!",counter)
-                                return (9*[dash.no_update])
+                                return (6*[dash.no_update])
         # if port doesn't exist or is closed
-        return (["Still Nothing", 0, 0, 0, 0, 0, 0, 0, 0])
+        return (["Still Nothing", 0, 0, 0, 0, 0])
 
 ######################################################################
 ### Dash App Running!
