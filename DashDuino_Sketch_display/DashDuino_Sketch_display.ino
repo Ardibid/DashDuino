@@ -81,7 +81,7 @@ void display_setup() {
 
   // Clear the buffer.
   display.clearDisplay();
-  display.setRotation(3);
+  display.setRotation(1);
 }
 
 void loop() {
@@ -96,16 +96,27 @@ void show_values_on_display() {
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
   
-  String labels [4]= {"    L","    T","    B","    R"};
+  String labels [4]= {"L","T","B","R"};
   byte knob_pins[4] = {A0, A1, A2, A3};
-
+  
   for (int i = 0 ; i < 4 ; i++) {
+    int val_cut = knob_values[i];
+    val_cut -= val_cut %5;
+    if (val_cut > 999){
+      val_cut = 999;
+    }
+    
     display.setTextSize(1);
-    display.println("    ");
     display.println(labels[i]);
-    display.setTextSize(2);
-    display.println(knob_values[i]/10);
+    display.print("  ");
+    display.println(val_cut);
   }
+  display.println("");
+  display.println("");
+  display.println("  ---");
+  display.println("S  OK");
+  display.println("  ");
+  display.println("V 0.1");
   display.display();
 }
 
