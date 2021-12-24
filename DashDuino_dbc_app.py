@@ -12,15 +12,16 @@
 ### Imports
 ######################################################################
 import dash
-from dash_html_components.Col import Col
-from dash_html_components.H4 import H4
+from dash import dcc
+from dash import html
+# from dash_html_components.Col import Col
+# from dash_html_components.H4 import H4
 import dash_daq as daq
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
+# import dash_html_components as html
 
 from dash.dependencies import Input, Output, State
-from dash_html_components.Hr import Hr
+# from dash_html_components.Hr import Hr
 
 import serial
 import json
@@ -39,7 +40,7 @@ parser.add_argument('mode',
 
 parser.add_argument('comPort', 
                         help="Select the COM port to use, defulat is \"COM4\" (str)", 
-                        default='COM4',
+                        default='COM3',
                         nargs='?',
                         type=str)
 
@@ -388,10 +389,10 @@ def port_manager(val):
         Output(component_id='knob_01', component_property='value'),
         Output(component_id='knob_02', component_property='value'),
         Output(component_id='knob_03', component_property='value'),
-        Output(component_id='knob_04', component_property='value'),
-        Output(component_id='knob_05', component_property='value'),
-        Output(component_id='rotary', component_property='value'),
-        Output(component_id='rotary_status', component_property='children'),
+        # Output(component_id='knob_04', component_property='value'),
+        # Output(component_id='knob_05', component_property='value'),
+        # Output(component_id='rotary', component_property='value'),
+        # Output(component_id='rotary_status', component_property='children'),
         Input(component_id="interval_component", component_property="n_intervals"),
         )
 def update_serila(interavl):
@@ -415,8 +416,11 @@ def update_serila(interavl):
                 if serial_port.isOpen():
                         try:
                                 data_to_read = serial_port.inWaiting()
+                                
                                 serial_msg = serial_port.read(data_to_read).decode('ascii')
+                                
                                 data = serial_msg.split("\r\n")
+                                
                                 msg = data[-2]
                                 knob_values = json.loads(msg)
 
@@ -424,21 +428,24 @@ def update_serila(interavl):
 
                                 for key, value in knob_values.items():
                                         msg = msg+ "{}: {}, ".format(key[-2:], value)
-
+                                
+                                
                                 # just to clip the rotary value!
                                 knob_values["rotary_knob"] = max (min(rotary_encoder_range), 
                                                                 min(knob_values["rotary_knob"], 
                                                                 max(rotary_encoder_range)))
+                                print(knob_values)
                                 # knob_values["rotary_knob"] = 0
                                 return ([msg, 
                                         knob_values["knob_00"],
                                         knob_values["knob_01"],
                                         knob_values["knob_02"],
                                         knob_values["knob_03"],
-                                        knob_values["knob_04"],
-                                        knob_values["knob_05"],
-                                        knob_values["rotary_knob"],
-                                        knob_values["rotary_knob"],])
+                                        # knob_values["knob_04"],
+                                        # knob_values["knob_05"],
+                                        # knob_values["rotary_knob"],
+                                        # knob_values["rotary_knob"],
+                                        ])
                         except:
                                 counter += 1
                                 print ("had issues!",counter)

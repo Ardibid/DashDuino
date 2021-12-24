@@ -52,6 +52,7 @@ volatile int counter = 0 ;
 
 const int button = 2;
 int button_pressed_timer = 0;
+bool button_down = false;
 
 void setup() {
   display_setup();
@@ -64,7 +65,7 @@ void setup() {
   pinMode(button, INPUT_PULLUP);
 
   // initialize serial communication at 115200 bits per second:
-  Serial.begin(115200);
+  Serial.begin(230400);
 
   // initialize the dictionary
   for (int i = 0; i < sizeof(knob_pins); i++) {
@@ -82,7 +83,7 @@ void display_setup() {
   //analogReference(EXTERNAL);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.display();
-  delay(100);
+  delay(250);
 
   // Clear the buffer.
   display.clearDisplay();
@@ -91,7 +92,6 @@ void display_setup() {
 
 void loop() {
   read_knob_values();
-  read_button_val();
   write_knob_values_to_serial();
   show_values_on_display();
 }
@@ -101,28 +101,32 @@ void show_values_on_display() {
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
-
-  String labels [4] = {"L", "T", "B", "R"};
-  byte knob_pins[4] = {A0, A1, A2, A3};
-
-  for (int i = 0 ; i < 4 ; i++) {
-    int val_cut = knob_values[i];
-    val_cut -= val_cut % 5;
-    if (val_cut > 999) {
-      val_cut = 999;
-    }
-
-    display.setTextSize(1);
-    display.println(labels[i]);
-    display.print("  ");
-    display.println(val_cut);
+  if (button_down) {
+    display.println("S");
+    display.println(" ");
+    display.println("E");
+    display.println(" ");
+    display.println("N");
+    display.println(" ");
+    display.println("T");
   }
-  display.println("");
-  display.println("");
-  display.println("  ---");
-  display.println("S  OK");
-  display.println("  ");
-  display.println("V 0.1");
+  else {
+
+    String labels [3] = {"R", "T", "B"};
+    byte knob_pins[3] = {A0, A1, A2};
+
+    for (int i = 0 ; i < 3 ; i++) {
+      int val_cut = knob_values[i];
+      val_cut -= val_cut % 5;
+      if (val_cut > 999) {
+        val_cut = 999;
+      }
+      display.setTextSize(1);
+      display.println(labels[i]);
+      display.print("  ");
+      display.println(val_cut);
+    }
+  }
   display.display();
 }
 void send_data_to_robot() {
@@ -130,17 +134,19 @@ void send_data_to_robot() {
 }
 
 void read_button_val() {
-  int button_val = digitalRead(button);
-  //Serial.print(button_val, button_pressed_timer);
+  
+  int button_val = digitalRead(button);  
+  
   if (button_val < 1) {
     button_pressed_timer ++;
-    if (button_pressed_timer > 3) {
-      send_data_to_robot();
+    if (button_pressed_timer > 2) {
+      button_down = true;
       button_pressed_timer = 0;
     }
   }
   else {
     button_pressed_timer = 0;
+    button_down = false;
   }
 }
 
@@ -150,7 +156,9 @@ void read_knob_values() {
     knob_values[i] = analogRead(knob_pins[i]);
     doc[knob_names[i]] = knob_values[i];
   }
-  doc["rotary_knob"] = counter;
+  read_button_val();
+  
+  doc["push_button"] = button_down;
 }
 
 void write_knob_values_to_serial() {
