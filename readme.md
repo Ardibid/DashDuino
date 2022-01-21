@@ -1,7 +1,5 @@
 # DashDuino
-
-![demo](/media/test_device.gif?raw=true)
-![demo](/media/demo_v01.gif?raw=true)
+![demo](/media/device.JPG)
 
 A simple app to read knob values from an Arduino board to a Dash app.
 
@@ -15,8 +13,10 @@ Once the board is up and running, make sure that Arduino serial montor is CLOSED
 Check the port that your Arduino is connected to and update the **port** variable in DashDuino_dbc_app.py to match it. Then run the dash app:
 `path\to\your\code\python  DashDuino_dbc_app.py`
 
+![demo](/media/test_device.gif?raw=true)
+![demo](/media/demo_v01.gif?raw=true)
 ![demo](/media/simulation.gif?raw=true)
-![demo](/media/device.JPG)
+
 
 ## Dependencies
 
