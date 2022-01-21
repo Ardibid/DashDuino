@@ -1,5 +1,7 @@
 # DashDuino
 
+![demo](/media/device.jpg)
+![demo](/media/test_device.gif?raw=true)
 ![demo](/media/demo_v01.gif?raw=true)
 
 A simple app to read knob values from an Arduino board to a Dash app.
