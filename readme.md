@@ -16,8 +16,8 @@ Check the port that your Arduino is connected to and update the **port** variabl
 `path\to\your\code\python  DashDuino_dbc_app.py`
 
 ![demo](/media/simulation.gif?raw=true)
+![demo](/media/device.JPG)
 
-![demo](/media/device.jpg)
 ## Dependencies
 
 The code is tested to work with these versions:
