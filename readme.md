@@ -1,6 +1,5 @@
 # DashDuino
 
-![demo](/media/device.jpg)
 ![demo](/media/test_device.gif?raw=true)
 ![demo](/media/demo_v01.gif?raw=true)
 
@@ -18,6 +17,7 @@ Check the port that your Arduino is connected to and update the **port** variabl
 
 ![demo](/media/simulation.gif?raw=true)
 
+![demo](/media/device.jpg)
 ## Dependencies
 
 The code is tested to work with these versions:
